@@ -11,4 +11,9 @@ public class Fork
     {
         this.index = index;
     }
+
+    public String toString()
+    {
+        return "Fork: " + index;
+    }
 }
