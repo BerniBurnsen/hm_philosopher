@@ -15,7 +15,7 @@ public class Main
 
         for(int i = 0; i < numberOfPhilosophers; i++)
         {
-            new Philosopher(table);
+            new Philosopher(table, i);
         }
     }
 }

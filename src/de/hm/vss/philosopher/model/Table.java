@@ -20,7 +20,12 @@ public class Table
         }
         for(int i = 0; i < seats; i++)
         {
-            plates[i] = new Plate(forks[i], forks[i == (seats-1) ? 0 : (i+1)]);
+            plates[i] = new Plate(forks[i], forks[i == (seats-1) ? 0 : (i+1)], i);
         }
+    }
+
+    public synchronized Plate getPlate()
+    {
+        return plates[0];
     }
 }
