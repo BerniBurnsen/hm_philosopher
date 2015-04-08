@@ -6,6 +6,7 @@ package de.hm.vss.philosopher.model;
 public class Fork
 {
     private final int index;
+    private boolean isReserved = false;
 
     public Fork(int index)
     {
@@ -15,5 +16,15 @@ public class Fork
     public String toString()
     {
         return "Fork: " + index;
+    }
+
+    public boolean isReserved()
+    {
+        return isReserved;
+    }
+
+    public void setIsReserved(boolean isReserved)
+    {
+        this.isReserved = isReserved;
     }
 }

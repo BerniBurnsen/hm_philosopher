@@ -41,7 +41,7 @@ public class Table
         }
         else
         {
-            plates.wait();
+            this.wait();
             return getPlate();
         }
     }
@@ -49,6 +49,6 @@ public class Table
     public synchronized void releasePlate(Plate plate)
     {
         plates[plate.getIndex()].setIsReserved(false);
-        plates.notifyAll();
+        this.notifyAll();
     }
 }

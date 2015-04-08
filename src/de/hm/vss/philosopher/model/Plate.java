@@ -33,13 +33,46 @@ public class Plate
         return index;
     }
 
-    public Fork getLeftFork()
+    public synchronized Fork getLeftFork() throws InterruptedException
     {
-        return leftFork;
+        if(leftFork.isReserved())
+        {
+            this.wait();
+            return getLeftFork();
+        }
+        else
+        {
+            leftFork.setIsReserved(true);
+            return leftFork;
+        }
     }
 
-    public Fork getRightFork()
+    public synchronized Fork getRightFork() throws InterruptedException
     {
-        return rightFork;
+        if(rightFork.isReserved())
+        {
+            for(int i = 0; i < 10; i++)
+            {
+                this.wait(200);
+            }
+            return getRightFork();
+        }
+        else
+        {
+            rightFork.setIsReserved(true);
+            return rightFork;
+        }
+    }
+
+    public synchronized void releaseLeftFork()
+    {
+        leftFork.setIsReserved(false);
+        this.notifyAll();
+    }
+
+    public synchronized void releaseRightFork()
+    {
+        rightFork.setIsReserved(false);
+        this.notifyAll();
     }
 }
