@@ -30,7 +30,7 @@ public class Philosopher extends Thread
         {
             plate = table.getPlate();
             plate.wait();
-            System.out.println("Philosopher " + index + " got Plate " + plate.getIndex());
+            System.out.println(toString() + " got Plate " + plate.getIndex());
             leftFork = plate.getLeftFork();
             leftFork.wait();
             rightFork = plate.getRightFork();
