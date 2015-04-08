@@ -24,8 +24,31 @@ public class Table
         }
     }
 
-    public synchronized Plate getPlate()
+    public synchronized Plate getPlate() throws InterruptedException
     {
-        return plates[0];
+        Plate freePlate = null;
+        for(int i = 0; i < seats; i++)
+        {
+            if(!plates[i].isReserved())
+            {
+                freePlate = plates[i];
+            }
+        }
+        if(freePlate != null)
+        {
+            freePlate.setIsReserved(true);
+            return freePlate;
+        }
+        else
+        {
+            plates.wait();
+            return getPlate();
+        }
+    }
+
+    public synchronized void releasePlate(Plate plate)
+    {
+        plates[plate.getIndex()].setIsReserved(false);
+        plates.notifyAll();
     }
 }

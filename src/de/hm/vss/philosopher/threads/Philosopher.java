@@ -25,20 +25,8 @@ public class Philosopher extends Thread
         Fork rightFork;
 
         meditate();
-        try
-        {
-            plate = table.getPlate();
-            plate.wait();
-            System.out.println("Philosopher " + index + " got Plate " + plate.getIndex());
-            leftFork = plate.getLeftFork();
-            leftFork.wait();
-            rightFork = plate.getRightFork();
-            rightFork.wait();
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
+
+
 
 
 
