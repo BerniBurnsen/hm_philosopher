@@ -33,46 +33,47 @@ public class Plate
         return index;
     }
 
-    public synchronized Fork getLeftFork() throws InterruptedException
+    public void waitForForks() throws InterruptedException
     {
-        if(leftFork.isReserved())
+        synchronized (getLeftFork())
         {
-            this.wait();
-            return getLeftFork();
-        }
-        else
-        {
-            leftFork.setIsReserved(true);
-            return leftFork;
-        }
-    }
-
-    public synchronized Fork getRightFork() throws InterruptedException
-    {
-        if(rightFork.isReserved())
-        {
-            for(int i = 0; i < 10; i++)
+            if(getLeftFork().isReserved())
             {
-                this.wait(200);
+                getLeftFork().wait();
             }
-            return getRightFork();
+            synchronized (getRightFork())
+            {
+                if(getRightFork().isReserved())
+                {
+                    getRightFork().wait();
+                }
+                getRightFork().setIsReserved(true);
+                getLeftFork().setIsReserved(true);
+            }
         }
-        else
+    }
+
+    public void releaseForks()
+    {
+        synchronized (getLeftFork())
         {
-            rightFork.setIsReserved(true);
-            return rightFork;
+            getLeftFork().setIsReserved(false);
+            getLeftFork().notifyAll();
+        }
+        synchronized (getRightFork())
+        {
+            getRightFork().setIsReserved(false);
+            getRightFork().notifyAll();
         }
     }
 
-    public synchronized void releaseLeftFork()
+    public Fork getLeftFork()
     {
-        leftFork.setIsReserved(false);
-        this.notifyAll();
+        return leftFork;
     }
 
-    public synchronized void releaseRightFork()
+    public Fork getRightFork()
     {
-        rightFork.setIsReserved(false);
-        this.notifyAll();
+        return rightFork;
     }
 }

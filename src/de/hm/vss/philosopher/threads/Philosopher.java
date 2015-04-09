@@ -3,7 +3,6 @@ package de.hm.vss.philosopher.threads;
 import de.hm.vss.philosopher.model.Fork;
 import de.hm.vss.philosopher.model.Plate;
 import de.hm.vss.philosopher.model.Table;
-import jdk.nashorn.internal.objects.NativeJava;
 
 import java.util.Random;
 
@@ -12,13 +11,27 @@ import java.util.Random;
  */
 public class Philosopher extends Thread
 {
+    private final int MEDIATIONTIME = 5;
+    private final int SLEEPTIME = 1;
+    private final int EATTIME = 1;
+
+
     private final Table table;
     private final int index;
+    private final boolean isVeryHungry;
 
-    public Philosopher(Table table, int index)
+    private int eatcounter = 0;
+    private boolean run = true;
+
+    public Philosopher(Table table, int index, boolean isVeryHungry)
     {
         this.table = table;
         this.index = index;
+        this.isVeryHungry = isVeryHungry;
+    }
+    public Philosopher(Table table, int index)
+    {
+        this(table, index, false);
     }
 
     public void run()
@@ -27,27 +40,27 @@ public class Philosopher extends Thread
         Fork leftFork;
         Fork rightFork;
 
-        while(true)
+        while(run)
         {
             meditate();
             try
             {
                 System.out.println(this + " waiting for place");
                 plate = table.getPlate();
-                System.out.println(this + " got plate " + plate.getIndex());
-                System.out.println(this + " waiting for left fork");
                 leftFork = plate.getLeftFork();
-                System.out.println(this + " got left fork");
-                System.out.println(this + " waiting for right fork");
                 rightFork = plate.getRightFork();
-                System.out.println(this + " got right fork");
+                System.out.println(this + " got plate " + plate.getIndex());
+                System.out.println(this + " waiting for forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
+                plate.waitForForks();
+                System.out.println(this + " got forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
                 eat();
-                plate.releaseLeftFork();
-                plate.releaseRightFork();
+                plate.releaseForks();
+                System.out.println(this + " releases forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
                 table.releasePlate(plate);
+                System.out.println(this + " releases palte " + plate.getIndex());
             } catch (InterruptedException e)
             {
-                e.printStackTrace();
+                run = false;
             }
         }
     }
@@ -56,11 +69,20 @@ public class Philosopher extends Thread
     {
         try
         {
-            System.out.println(toString() + " sleeping");
-            this.sleep(new Random().nextInt((2000 - 1000) + 1) + 1000);
+            int sleeptime;
+            if(isVeryHungry)
+            {
+                sleeptime = MEDIATIONTIME/2;
+            }
+            else
+            {
+                sleeptime = MEDIATIONTIME;
+            }
+            System.out.println(this + (isVeryHungry ? " sleeping short" : " sleeping") + " (" + sleeptime + ")");
+            this.sleep(sleeptime);
         } catch (InterruptedException e)
         {
-            e.printStackTrace();
+            run = false;
         }
     }
 
@@ -68,16 +90,37 @@ public class Philosopher extends Thread
     {
         try
         {
-            System.out.println(toString() + " eating");
-            this.sleep(new Random().nextInt((1000 - 500) + 1) + 500);
+            System.out.println(this + " eating");
+            this.sleep(EATTIME);
+            eatcounter++;
+            if(eatcounter%3 == 0)
+            {
+                goSleeping();
+            }
         } catch (InterruptedException e)
         {
-            e.printStackTrace();
+            run = false;
         }
+    }
+
+    private void goSleeping() throws InterruptedException
+    {
+        this.sleep(MEDIATIONTIME);
     }
 
     public String toString()
     {
         return "Philosopher " + index;
+    }
+
+    public int getEatcounter()
+    {
+        return eatcounter;
+    }
+
+    @Override
+    public void interrupt()
+    {
+        run = false;
     }
 }

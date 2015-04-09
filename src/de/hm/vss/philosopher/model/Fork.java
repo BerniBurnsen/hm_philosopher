@@ -18,6 +18,8 @@ public class Fork
         return "Fork: " + index;
     }
 
+    public int getIndex() { return index; }
+
     public boolean isReserved()
     {
         return isReserved;
