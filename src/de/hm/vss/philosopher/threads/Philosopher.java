@@ -4,15 +4,13 @@ import de.hm.vss.philosopher.model.Fork;
 import de.hm.vss.philosopher.model.Plate;
 import de.hm.vss.philosopher.model.Table;
 
-import java.util.Random;
-
 /**
  * Created by Joncn on 08.04.2015.
  */
 public class Philosopher extends Thread
 {
-    private final int MEDIATIONTIME = 5;
-    private final int SLEEPTIME = 1;
+    private final int MEDITATIONTIME = 5;
+    private final int SLEEPTIME = 10;
     private final int EATTIME = 1;
 
 
@@ -69,17 +67,17 @@ public class Philosopher extends Thread
     {
         try
         {
-            int sleeptime;
+            int meditationTime;
             if(isVeryHungry)
             {
-                sleeptime = MEDIATIONTIME/2;
+                meditationTime = MEDITATIONTIME /2;
             }
             else
             {
-                sleeptime = MEDIATIONTIME;
+                meditationTime = MEDITATIONTIME;
             }
-            System.out.println(this + (isVeryHungry ? " sleeping short" : " sleeping") + " (" + sleeptime + ")");
-            this.sleep(sleeptime);
+            System.out.println(this + (isVeryHungry ? " meditate short" : " meditate") + " (" + meditationTime + ")");
+            this.sleep(meditationTime);
         } catch (InterruptedException e)
         {
             run = false;
@@ -96,7 +94,7 @@ public class Philosopher extends Thread
             {
                 eatcounter++;
             }
-            if (getEatcounter() % 3 == 0)
+            if (getEatcounter() % 3 == 2)
             {
                 goSleeping();
             }
@@ -108,7 +106,8 @@ public class Philosopher extends Thread
 
     private void goSleeping() throws InterruptedException
     {
-        this.sleep(MEDIATIONTIME);
+        System.out.println(this + " sleeping");
+        this.sleep(SLEEPTIME);
     }
 
     public String toString()
