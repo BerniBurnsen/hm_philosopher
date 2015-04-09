@@ -32,8 +32,13 @@ public class Main
             @Override
             public void run()
             {
+                System.out.println("timer run out");
+                System.out.println(table);
+
+
                 for (Philosopher p : philosophers)
                 {
+
                     p.interrupt();
                 }
             }

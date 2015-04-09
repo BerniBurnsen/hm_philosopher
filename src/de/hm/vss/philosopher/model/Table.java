@@ -51,4 +51,24 @@ public class Table
         plates[plate.getIndex()].setIsReserved(false);
         this.notifyAll();
     }
+
+    public String toString()
+    {
+        //table stats for debug purpose
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0 ; i < forks.length ; i++)
+        {
+            final Fork f = forks[i];
+            sb.append("fork: " + f.getIndex() + " isReserved: " + f.isReserved());
+            sb.append("\n");
+        }
+
+        for(int i = 0 ; i < plates.length ; i++)
+        {
+            final Plate p = plates[i];
+            sb.append("Plate: " + p.getIndex() + " isReserved: " + p.isReserved());
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
 }

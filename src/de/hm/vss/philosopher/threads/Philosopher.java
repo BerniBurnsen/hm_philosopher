@@ -50,12 +50,12 @@ public class Philosopher extends Thread
                 leftFork = plate.getLeftFork();
                 rightFork = plate.getRightFork();
                 System.out.println(this + " got plate " + plate.getIndex());
-                System.out.println(this + " waiting for forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
+                System.out.println(this + " waiting for fork " + leftFork.getIndex() + " and " + rightFork.getIndex());
                 plate.waitForForks();
                 System.out.println(this + " got forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
                 eat();
                 plate.releaseForks();
-                System.out.println(this + " releases forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
+                System.out.println(this + " releases fork " + leftFork.getIndex() + " and " + rightFork.getIndex());
                 table.releasePlate(plate);
                 System.out.println(this + " releases palte " + plate.getIndex());
             } catch (InterruptedException e)
@@ -112,6 +112,7 @@ public class Philosopher extends Thread
     {
         return "Philosopher " + index;
     }
+
 
     public int getEatcounter()
     {
