@@ -5,14 +5,16 @@ package de.hm.vss.philosopher.model;
  */
 public class Plate
 {
+    private final Table table;
     private final Fork leftFork;
     private final Fork rightFork;
     private final int index;
 
     private boolean isReserved = false;
 
-    public Plate(Fork leftFork, Fork rightFork, int index)
+    public Plate(Table table, Fork leftFork, Fork rightFork, int index)
     {
+        this.table = table;
         this.leftFork = leftFork;
         this.rightFork = rightFork;
         this.index = index;
@@ -35,35 +37,24 @@ public class Plate
 
     public void waitForForks() throws InterruptedException
     {
-        synchronized (getLeftFork())
+        synchronized(table)
         {
-            if(getLeftFork().isReserved())
+            while(getRightFork().isReserved() && getLeftFork().isReserved())
             {
-                getLeftFork().wait();
+                table.wait();
             }
-            synchronized (getRightFork())
-            {
-                if(getRightFork().isReserved())
-                {
-                    getRightFork().wait();
-                }
-                getRightFork().setIsReserved(true);
-                getLeftFork().setIsReserved(true);
-            }
+            leftFork.setIsReserved(true);
+            rightFork.setIsReserved(true);
         }
     }
 
     public void releaseForks()
     {
-        synchronized (getLeftFork())
+        synchronized(table)
         {
-            getLeftFork().setIsReserved(false);
-            getLeftFork().notifyAll();
-        }
-        synchronized (getRightFork())
-        {
-            getRightFork().setIsReserved(false);
-            getRightFork().notifyAll();
+            leftFork.setIsReserved(false);
+            rightFork.setIsReserved(false);
+            table.notifyAll();
         }
     }
 
