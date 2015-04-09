@@ -20,7 +20,7 @@ public class Philosopher extends Thread
     private final int index;
     private final boolean isVeryHungry;
 
-    private int eatcounter = 0;
+    private Integer eatcounter = 0;
     private boolean run = true;
 
     public Philosopher(Table table, int index, boolean isVeryHungry)
@@ -49,7 +49,7 @@ public class Philosopher extends Thread
                 plate = table.getPlate();
                 leftFork = plate.getLeftFork();
                 rightFork = plate.getRightFork();
-                System.out.println(this + " got plate " + plate.getIndex());
+                System.out.println(this + " got place " + plate.getIndex());
                 System.out.println(this + " waiting for forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
                 plate.waitForForks();
                 System.out.println(this + " got forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
@@ -57,7 +57,7 @@ public class Philosopher extends Thread
                 plate.releaseForks();
                 System.out.println(this + " releases forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
                 table.releasePlate(plate);
-                System.out.println(this + " releases palte " + plate.getIndex());
+                System.out.println(this + " releases place " + plate.getIndex());
             } catch (InterruptedException e)
             {
                 run = false;
@@ -92,8 +92,11 @@ public class Philosopher extends Thread
         {
             System.out.println(this + " eating");
             this.sleep(EATTIME);
-            eatcounter++;
-            if(eatcounter%3 == 0)
+            synchronized (eatcounter)
+            {
+                eatcounter++;
+            }
+            if (getEatcounter() % 3 == 0)
             {
                 goSleeping();
             }
@@ -113,7 +116,7 @@ public class Philosopher extends Thread
         return "Philosopher " + index;
     }
 
-    public int getEatcounter()
+    public synchronized int getEatcounter()
     {
         return eatcounter;
     }
