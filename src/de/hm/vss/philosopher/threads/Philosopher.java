@@ -4,15 +4,14 @@ import de.hm.vss.philosopher.model.Fork;
 import de.hm.vss.philosopher.model.Plate;
 import de.hm.vss.philosopher.model.Table;
 
-import java.util.Random;
-
 /**
  * Created by Joncn on 08.04.2015.
  */
 public class Philosopher extends Thread
 {
-    private final int MEDIATIONTIME = 5;
-    private final int SLEEPTIME = 1;
+    private final int MEDITATIONTIME = 5;
+    private final int SLEEPTIME = 10;
+    private final int PENALTYTIME = 10;
     private final int EATTIME = 1;
 
 
@@ -20,8 +19,9 @@ public class Philosopher extends Thread
     private final int index;
     private final boolean isVeryHungry;
 
-    private Integer eatcounter = 0;
+    private int eatcounter = 0;
     private boolean run = true;
+    private boolean allowedToEat = true;
 
     public Philosopher(Table table, int index, boolean isVeryHungry)
     {
@@ -29,11 +29,8 @@ public class Philosopher extends Thread
         this.index = index;
         this.isVeryHungry = isVeryHungry;
     }
-    public Philosopher(Table table, int index)
-    {
-        this(table, index, false);
-    }
 
+    @Override
     public void run()
     {
         Plate plate;
@@ -53,11 +50,18 @@ public class Philosopher extends Thread
                 System.out.println(this + " waiting for forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
                 plate.waitForForks(this);
                 System.out.println(this + " got forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
-                eat();
+                if(isAllowedToEat() && run)
+                {
+                    eat();
+                }
                 plate.releaseForks();
                 System.out.println(this + " releases forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
                 table.releasePlate(plate);
                 System.out.println(this + " releases place " + plate.getIndex());
+                if(!isAllowedToEat())
+                {
+                    takePenalty();
+                }
             } catch (InterruptedException e)
             {
                 run = false;
@@ -69,17 +73,17 @@ public class Philosopher extends Thread
     {
         try
         {
-            int sleeptime;
+            int meditationTime;
             if(isVeryHungry)
             {
-                sleeptime = MEDIATIONTIME/2;
+                meditationTime = MEDITATIONTIME /2;
             }
             else
             {
-                sleeptime = MEDIATIONTIME;
+                meditationTime = MEDITATIONTIME;
             }
-            System.out.println(this + (isVeryHungry ? " sleeping short" : " sleeping") + " (" + sleeptime + ")");
-            this.sleep(sleeptime);
+            System.out.println(this + (isVeryHungry ? " meditate short" : " meditate") + " (" + meditationTime + ")");
+            this.sleep(meditationTime);
         } catch (InterruptedException e)
         {
             run = false;
@@ -92,11 +96,11 @@ public class Philosopher extends Thread
         {
             System.out.println(this + " eating");
             this.sleep(EATTIME);
-            synchronized (eatcounter)
+            synchronized (this)
             {
                 eatcounter++;
             }
-            if (getEatcounter() % 3 == 0)
+            if (getEatcounter() % 3 == 2)
             {
                 goSleeping();
             }
@@ -108,12 +112,15 @@ public class Philosopher extends Thread
 
     private void goSleeping() throws InterruptedException
     {
-        this.sleep(MEDIATIONTIME);
+        System.out.println(this + " sleeping");
+        this.sleep(SLEEPTIME);
     }
 
-    public String toString()
+    private void takePenalty() throws InterruptedException
     {
-        return "Philosopher " + index;
+        System.err.println(this + " taking penalty");
+        this.sleep(PENALTYTIME);
+        setAllowedToEat(true);
     }
 
     public synchronized int getEatcounter()
@@ -125,5 +132,25 @@ public class Philosopher extends Thread
     public void interrupt()
     {
         run = false;
+    }
+
+    public int getIndex()
+    {
+        return index;
+    }
+
+    public synchronized void setAllowedToEat(boolean allowed)
+    {
+        allowedToEat = allowed;
+    }
+
+    public synchronized boolean isAllowedToEat()
+    {
+        return allowedToEat;
+    }
+
+    public String toString()
+    {
+        return "Philosopher " + getIndex();
     }
 }

@@ -1,5 +1,8 @@
 package de.hm.vss.philosopher.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Joncn on 08.04.2015.
  */
@@ -41,7 +44,7 @@ public class Table
         }
         else
         {
-            this.wait();
+            wait();
             return getPlate();
         }
     }
@@ -49,7 +52,15 @@ public class Table
     public synchronized void releasePlate(Plate plate)
     {
         plates[plate.getIndex()].setIsReserved(false);
-        this.notifyAll();
+        notify();
+    }
+
+    public List<Plate> getNeighbours(Plate plate)
+    {
+        List<Plate> neighbours = new ArrayList<>();
+        neighbours.add((plate.getIndex() -1) < 0 ? plates[plates.length-1] : plates[plate.getIndex() -1]);
+        neighbours.add((plate.getIndex() +1) >= plates.length ? plates[0] : plates[plate.getIndex() +1]);
+        return neighbours;
     }
 
     public String toString()
