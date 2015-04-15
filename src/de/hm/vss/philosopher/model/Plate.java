@@ -1,5 +1,7 @@
 package de.hm.vss.philosopher.model;
 
+import de.hm.vss.philosopher.threads.Philosopher;
+
 /**
  * Created by Joncn on 08.04.2015.
  */
@@ -35,29 +37,71 @@ public class Plate
         return index;
     }
 
-    public void waitForForks() throws InterruptedException
+    public void waitForForks(Philosopher p) throws InterruptedException
     {
-        synchronized(table)
+        boolean obtained = false;
+        int cnt = 0;
+        while(!obtained)
         {
-            while(getRightFork().isReserved() && getLeftFork().isReserved())
+            if(cnt >= 0 && cnt < 5)
             {
-                table.wait();
+                System.out.println(p + " " +cnt + ". try");
             }
-            leftFork.setIsReserved(true);
-            rightFork.setIsReserved(true);
+            else if(cnt >= 5)
+            {
+                System.err.println(p + " " +cnt + ". try");
+            }
+            cnt++;
+            synchronized (leftFork)
+            {
+                if(leftFork.isReserved())
+                {
+                    leftFork.wait(2);
+                }
+                else
+                {
+                    synchronized (rightFork)
+                    {
+                        if(rightFork.isReserved())
+                        {
+                            rightFork.wait(2);
+                        }
+                        else
+                        {
+                            obtained=true;
+                            rightFork.isReserved();
+                            leftFork.isReserved();
+                        }
+                    }
+                }
+            }
+
         }
+        System.out.println(p + " obtained both" + leftFork + " " + rightFork);
     }
 
     public void releaseForks()
     {
-        synchronized(table)
+        releaseLeftFork();
+        releaseRightFork();
+    }
+    private void releaseRightFork()
+    {
+        synchronized (rightFork)
         {
-            leftFork.setIsReserved(false);
             rightFork.setIsReserved(false);
-            table.notifyAll();
+            rightFork.notify();
         }
     }
 
+    private void releaseLeftFork()
+    {
+        synchronized (leftFork)
+        {
+            leftFork.setIsReserved(false);
+            leftFork.notify();
+        }
+    }
     public Fork getLeftFork()
     {
         return leftFork;

@@ -13,6 +13,23 @@ public class Main
 
     public static void main(String[] args)
     {
+        for(int i = 0 ; i < 10; i++)
+        {
+            System.out.println("Turn " + i);
+            execute(args);
+            try
+            {
+                Thread.sleep(1000);
+            } catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private static void execute(String[] args)
+    {
         int numberOfPhilosophers = Integer.parseInt(args[0]);
         int numberOfHungryPhilosophers = Integer.parseInt(args[1]);
         int numberOfPlaces = Integer.parseInt(args[2]);
@@ -33,9 +50,6 @@ public class Main
             public void run()
             {
                 System.out.println("timer run out");
-                System.out.println(table);
-
-
                 for (Philosopher p : philosophers)
                 {
 

@@ -51,7 +51,7 @@ public class Philosopher extends Thread
                 rightFork = plate.getRightFork();
                 System.out.println(this + " got place " + plate.getIndex());
                 System.out.println(this + " waiting for forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
-                plate.waitForForks();
+                plate.waitForForks(this);
                 System.out.println(this + " got forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
                 eat();
                 plate.releaseForks();
