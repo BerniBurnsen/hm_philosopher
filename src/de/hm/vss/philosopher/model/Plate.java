@@ -54,7 +54,7 @@ public class Plate
         {
             leftFork.setIsReserved(false);
             rightFork.setIsReserved(false);
-            table.notifyAll();
+            table.notify();
         }
     }
 
