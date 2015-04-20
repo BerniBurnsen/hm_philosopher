@@ -22,6 +22,7 @@ public class Philosopher extends Thread
     private int eatcounter = 0;
     private boolean run = true;
     private boolean allowedToEat = true;
+    private String state;
 
     public Philosopher(Table table, int index, boolean isVeryHungry)
     {
@@ -39,74 +40,72 @@ public class Philosopher extends Thread
 
         while(run)
         {
-            meditate();
             try
             {
-                System.out.println(this + " waiting for place");
-                plate = table.getPlate();
-                leftFork = plate.getLeftFork();
-                rightFork = plate.getRightFork();
-                System.out.println(this + " got place " + plate.getIndex());
-                System.out.println(this + " waiting for forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
-                plate.waitForForks(this);
-                System.out.println(this + " got forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
-                if(isAllowedToEat() && run)
+                state = "meditating";
+                meditate();
+                if(isAllowedToEat())
                 {
-                    eat();
+                    state = "waiting for place";
+                        plate = table.getPlate(this);
+                    state = "got place";
+                        leftFork = plate.getLeftFork();
+                        rightFork = plate.getRightFork();
+                        System.out.println(this + " waiting for forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
+                    state = "waiting for Forks";
+                        plate.waitForForks(this);
+                    state = "got forks";
+                        System.out.println(this + " got forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
+                    state = "start eating";
+                        eat();
+                    state = "releasing forks";
+                        plate.releaseForks();
+                    state = "releasing plate";
+                        System.out.println(this + " releases forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
+                        table.releasePlate(plate, this);
+                    state = "plate released";
+                        System.out.println(this + " releases place " + plate.getIndex());
+
                 }
-                plate.releaseForks();
-                System.out.println(this + " releases forks " + leftFork.getIndex() + " and " + rightFork.getIndex());
-                table.releasePlate(plate);
-                System.out.println(this + " releases place " + plate.getIndex());
-                if(!isAllowedToEat())
+                else
                 {
-                    takePenalty();
+                    setAllowedToEat(true);
                 }
-            } catch (InterruptedException e)
+            }
+            catch (InterruptedException e)
             {
+                System.err.println(this + " stop");
                 run = false;
             }
         }
     }
 
-    private void meditate()
+    private void meditate() throws InterruptedException
     {
-        try
+        int meditationTime;
+        if(isVeryHungry)
         {
-            int meditationTime;
-            if(isVeryHungry)
-            {
-                meditationTime = MEDITATIONTIME /2;
-            }
-            else
-            {
-                meditationTime = MEDITATIONTIME;
-            }
-            System.out.println(this + (isVeryHungry ? " meditate short" : " meditate") + " (" + meditationTime + ")");
-            this.sleep(meditationTime);
-        } catch (InterruptedException e)
-        {
-            run = false;
+            meditationTime = MEDITATIONTIME /2;
         }
+        else
+        {
+            meditationTime = MEDITATIONTIME;
+        }
+        System.out.println(this + (isVeryHungry ? " meditate short" : " meditate") + " (" + meditationTime + ")");
+        this.sleep(meditationTime);
     }
 
-    private void eat()
+    private void eat() throws InterruptedException
     {
-        try
+        System.out.println(this + " eating");
+        this.sleep(EATTIME);
+        synchronized (this)
         {
-            System.out.println(this + " eating");
-            this.sleep(EATTIME);
-            synchronized (this)
-            {
-                eatcounter++;
-            }
-            if (getEatcounter() % 3 == 2)
-            {
-                goSleeping();
-            }
-        } catch (InterruptedException e)
+            eatcounter++;
+        }
+        if (getEatcounter() % 3 == 2)
         {
-            run = false;
+            goSleeping();
         }
     }
 
@@ -147,6 +146,11 @@ public class Philosopher extends Thread
     public synchronized boolean isAllowedToEat()
     {
         return allowedToEat;
+    }
+
+    public String getStateOfPhilosopher()
+    {
+        return state;
     }
 
     public String toString()

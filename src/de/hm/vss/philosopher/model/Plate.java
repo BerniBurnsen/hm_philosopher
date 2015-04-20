@@ -13,6 +13,7 @@ public class Plate
     private final int index;
 
     private boolean isReserved = false;
+    private Philosopher p = null;
 
     public Plate(Table table, Fork leftFork, Fork rightFork, int index)
     {
@@ -27,9 +28,17 @@ public class Plate
         return isReserved;
     }
 
-    public void setIsReserved(boolean isReserved)
+    public void setIsReserved(boolean isReserved, Philosopher p)
     {
         this.isReserved = isReserved;
+        if(isReserved)
+        {
+            this.p = p;
+        }
+        else
+        {
+            this.p = null;
+        }
     }
 
     public int getIndex()
@@ -37,45 +46,92 @@ public class Plate
         return index;
     }
 
+    /*public void waitForForks(Philosopher p) throws InterruptedException
+    {
+        boolean obtained = false;
+        int trys;
+        while(!obtained)
+        {
+            trys = getRandomAmountOfTrys();
+            synchronized (leftFork)
+            {
+                while (leftFork.isReserved())
+                {
+                    leftFork.wait();
+                }
+                synchronized (rightFork)
+                {
+                    for(int i = 0; i < trys; i++)
+                    {
+                        if (rightFork.isReserved())
+                        {
+                            rightFork.wait(2);
+                        }
+                        else
+                        {
+                            obtained = true;
+                            rightFork.setIsReserved(true, p);
+                            leftFork.setIsReserved(true, p);
+                        }
+                    }
+                }
+            }
+            Thread.sleep(getIndex()%2 +1);
+        }
+        System.out.println(p + " obtained both" + leftFork + " " + rightFork);
+    }*/
+
     public void waitForForks(Philosopher p) throws InterruptedException
     {
+        Fork firstFork;
+        Fork secondFork;
+        if(this.getIndex() %2 == 0)
+        {
+            firstFork = leftFork;
+            secondFork = rightFork;
+        }
+        else
+        {
+            firstFork = rightFork;
+            secondFork = leftFork;
+        }
+
         boolean obtained = false;
         int cnt = 0;
         while(!obtained)
         {
-            if(cnt >= 0 && cnt < 5)
+/*            if(cnt >= 0 && cnt < 5)
             {
                 System.out.println(p + " " +cnt + ". try");
             }
             else if(cnt >= 5)
             {
                 System.err.println(p + " " +cnt + ". try");
-            }
+            }*/
             cnt++;
-            synchronized (leftFork)
+            synchronized (firstFork)
             {
-                if(leftFork.isReserved())
+                while (firstFork.isReserved())
                 {
-                    leftFork.wait(2);
+                    firstFork.wait(2);
                 }
-                else
+                synchronized (secondFork)
                 {
-                    synchronized (rightFork)
+                    if (secondFork.isReserved())
                     {
-                        if(rightFork.isReserved())
-                        {
-                            rightFork.wait(2);
-                        }
-                        else
-                        {
-                            obtained=true;
-                            rightFork.isReserved();
-                            leftFork.isReserved();
-                        }
+                        secondFork.wait(2);
+
                     }
+                    else
+                    {
+                        obtained = true;
+                        firstFork.setIsReserved(true, p);
+                        secondFork.setIsReserved(true, p);
+                    }
+
                 }
             }
-
+            //System.out.println(p + " left sync");
         }
         System.out.println(p + " obtained both" + leftFork + " " + rightFork);
     }
@@ -89,7 +145,7 @@ public class Plate
     {
         synchronized (rightFork)
         {
-            rightFork.setIsReserved(false);
+            rightFork.setIsReserved(false, p);
             rightFork.notify();
         }
     }
@@ -98,10 +154,16 @@ public class Plate
     {
         synchronized (leftFork)
         {
-            leftFork.setIsReserved(false);
+            leftFork.setIsReserved(false, p);
             leftFork.notify();
         }
     }
+
+    private int getRandomAmountOfTrys()
+    {
+        return getIndex()%2 +1;
+    }
+
     public Fork getLeftFork()
     {
         return leftFork;
@@ -110,5 +172,15 @@ public class Plate
     public Fork getRightFork()
     {
         return rightFork;
+    }
+
+    public String toString()
+    {
+        return "Plate " + getIndex();
+    }
+
+    public Philosopher getPhilosopher()
+    {
+        return p;
     }
 }

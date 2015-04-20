@@ -1,7 +1,8 @@
 package de.hm.vss.philosopher.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import de.hm.vss.philosopher.threads.Philosopher;
+
+import java.util.Random;
 
 /**
  * Created by Joncn on 08.04.2015.
@@ -11,6 +12,7 @@ public class Table
     private final int seats;
     private final Fork[] forks;
     private final Plate[] plates;
+    private final Random random = new Random();
 
     public Table(int seats)
     {
@@ -27,41 +29,63 @@ public class Table
         }
     }
 
-    public synchronized Plate getPlate() throws InterruptedException
+    public Plate getPlate(Philosopher p) throws InterruptedException
     {
-        Plate freePlate = null;
+        int startIndex = p.getIndex() % seats;
+        Plate plate = plates[startIndex];
+        for (int i = 0; i < seats; i++)
+        {
+            synchronized (plate)
+            {
+                if (!plate.isReserved())
+                {
+                    System.out.println(p + " got " + plate);
+                    plate.setIsReserved(true, p);
+                    return plate;
+                }
+            }
+            plate = plates[(startIndex + i) % seats];
+        }
+        synchronized (plate)
+        {
+            while(plate.isReserved())
+            {
+                plate.wait();
+            }
+            plate.setIsReserved(true, p);
+            return plate;
+        }
+    }
+
+    public void releasePlate(Plate plate, Philosopher p)
+    {
+        synchronized (plate)
+        {
+            System.out.println(plate + " is now free");
+            plate.setIsReserved(false, p);
+            plate.notify();
+        }
+    }
+
+    /*public synchronized Plate getPlate() throws InterruptedException
+    {
         for(int i = 0; i < seats; i++)
         {
             if(!plates[i].isReserved())
             {
-                freePlate = plates[i];
+                return plates[i];
             }
         }
-        if(freePlate != null)
-        {
-            freePlate.setIsReserved(true);
-            return freePlate;
-        }
-        else
-        {
-            wait();
-            return getPlate();
-        }
+        wait();
+        return getPlate();
     }
+
 
     public synchronized void releasePlate(Plate plate)
     {
-        plates[plate.getIndex()].setIsReserved(false);
+        plate.setIsReserved(false);
         notify();
-    }
-
-    public List<Plate> getNeighbours(Plate plate)
-    {
-        List<Plate> neighbours = new ArrayList<>();
-        neighbours.add((plate.getIndex() -1) < 0 ? plates[plates.length-1] : plates[plate.getIndex() -1]);
-        neighbours.add((plate.getIndex() +1) >= plates.length ? plates[0] : plates[plate.getIndex() +1]);
-        return neighbours;
-    }
+    }*/
 
     public String toString()
     {
@@ -70,16 +94,21 @@ public class Table
         for(int i = 0 ; i < forks.length ; i++)
         {
             final Fork f = forks[i];
-            sb.append("fork: " + f.getIndex() + " isReserved: " + f.isReserved());
+            sb.append("fork: " + f.getIndex() + " isReserved: " + f.isReserved() + " by " + f.getPhilosopher());
             sb.append("\n");
         }
 
         for(int i = 0 ; i < plates.length ; i++)
         {
             final Plate p = plates[i];
-            sb.append("Plate: " + p.getIndex() + " isReserved: " + p.isReserved());
+            sb.append("Plate: " + p.getIndex() + " isReserved: " + p.isReserved() + " by " + p.getPhilosopher());
             sb.append("\n");
         }
         return sb.toString();
+    }
+
+    public int getSeats()
+    {
+        return seats;
     }
 }

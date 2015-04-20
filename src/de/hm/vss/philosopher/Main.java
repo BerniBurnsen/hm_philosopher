@@ -1,6 +1,7 @@
 package de.hm.vss.philosopher;
 
 import de.hm.vss.philosopher.model.Table;
+import de.hm.vss.philosopher.threads.Overseer;
 import de.hm.vss.philosopher.threads.Philosopher;
 
 import java.util.ArrayList;
@@ -13,19 +14,7 @@ public class Main
 
     public static void main(String[] args)
     {
-        for(int i = 0 ; i < 10; i++)
-        {
-            System.out.println("Turn " + i);
-            execute(args);
-            try
-            {
-                Thread.sleep(1000);
-            } catch (InterruptedException e)
-            {
-                e.printStackTrace();
-            }
-        }
-
+        execute(args);
     }
 
     private static void execute(String[] args)
@@ -33,6 +22,7 @@ public class Main
         int numberOfPhilosophers = Integer.parseInt(args[0]);
         int numberOfHungryPhilosophers = Integer.parseInt(args[1]);
         int numberOfPlaces = Integer.parseInt(args[2]);
+        Thread mainThread = Thread.currentThread();
 
         Table table = new Table(numberOfPlaces);
         List<Philosopher> philosophers = new ArrayList<>();
@@ -41,6 +31,8 @@ public class Main
         {
             philosophers.add(new Philosopher(table, i, i >= numberOfPhilosophers - numberOfHungryPhilosophers ? true : false));
         }
+        Overseer overseer = new Overseer(philosophers, 10);
+        overseer.start();
 
         philosophers.forEach((philosopher) -> philosopher.start());
 
@@ -55,21 +47,45 @@ public class Main
 
                     p.interrupt();
                 }
+                overseer.interrupt();
             }
         }, 60 * 1000);
 
-        for(Philosopher p : philosophers)
+        new Timer().schedule(new TimerTask()
         {
-            try
+            @Override
+            public void run()
             {
-                p.join();
-            } catch (InterruptedException e)
-            {
-                e.printStackTrace();
+                System.out.println("timer run out");
+                mainThread.interrupt();
             }
+        }, 62 * 1000);
+
+        try
+        {
+            for(Philosopher p : philosophers)
+            {
+                    p.join();
+            }
+            overseer.join();
+        } catch (InterruptedException e)
+        {
+
         }
 
+        System.out.println("================== TABLE ==================");
+        System.out.println(table);
+
         System.out.println("================== STATS ==================");
-        philosophers.forEach((p) -> System.out.println(p + " eats " + p.getEatcounter() + " times"));
+        philosophers.forEach((p) -> System.out.println(p + " eats " + p.getEatcounter() + " times ::: STATE: " + p.getStateOfPhilosopher() ));
+
+        try
+        {
+            Thread.sleep(1);
+        } catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+        System.exit(0);
     }
 }

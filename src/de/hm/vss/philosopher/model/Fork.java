@@ -1,5 +1,7 @@
 package de.hm.vss.philosopher.model;
 
+import de.hm.vss.philosopher.threads.Philosopher;
+
 /**
  * Created by Joncn on 08.04.2015.
  */
@@ -7,6 +9,7 @@ public class Fork
 {
     private final int index;
     private boolean isReserved = false;
+    private Philosopher p = null;
 
     public Fork(int index)
     {
@@ -25,8 +28,21 @@ public class Fork
         return isReserved;
     }
 
-    public void setIsReserved(boolean isReserved)
+    public void setIsReserved(boolean isReserved, Philosopher p)
     {
         this.isReserved = isReserved;
+        if(isReserved)
+        {
+            this.p = p;
+        }
+        else
+        {
+            this.p = null;
+        }
+    }
+
+    public Philosopher getPhilosopher()
+    {
+        return p;
     }
 }
